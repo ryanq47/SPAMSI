@@ -310,7 +310,7 @@ int main(int argc, char* argv[]) {
     //if autopatch, start watchdog class.
     std::string arg1 = argv[1];
     if (arg1 == "--autopatch") {
-        std::cout << "watchdog" << std::endl;
+        std::cout << "autopatch" << std::endl;
         return 0;
     }
 
