@@ -116,7 +116,6 @@ amsipatch.exe --autopatch
 ### Options
 
   
-
 | Flag | Description |
 | ------------- | ------------------------------------------------------------------------ |
 | `--patch` | One-time AMSI patching of all active PowerShell processes |
