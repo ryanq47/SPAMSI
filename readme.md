@@ -119,11 +119,8 @@ amsipatch.exe --autopatch
 
 | Flag | Description |
 | ------------- | ------------------------------------------------------------------------ |
-
 | `--patch` | One-time AMSI patching of all active PowerShell processes |
-
 | `--autopatch` | Watchdog mode — continuously scan for new PowerShell processes and patch |
-
 | `--help` | Show usage instructions |
 
   
