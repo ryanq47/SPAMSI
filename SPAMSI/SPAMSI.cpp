@@ -3,14 +3,10 @@
 /*
 * SPAMSI
 *
-Remote patching of AMSI in all poiwershell/amsi loaded processes.
-
-Will likely require admin for OpenProcess. Could be a good post-ex tool?
-
+Remote patching of AMSI in all powershell/amsi loaded processes.
 
 
 */
-//OPTIONAL/IDEA; monitor/daemon mode so anytime a pwsh runs/poll for a run, run this on it and disable amsi.
 
 /*
 AV Stuff:
@@ -82,19 +78,6 @@ public:
         }
     }
 
-    //var for amsi address
-    //var for scanbufferaddress
-
-    //funcs to add
-    //[X] //constructor(pid of process) 
-    //[X] openremoteProcessHandle //gets process handle n stuff
-    //[X] getAmsiAddress()
-    //  >> enumprocessmodules
-    //[X] getAmsiScanBufferAddress()
-    //[X] patchAmsi(AddressOfScanbuffer)
-    //[ ] checkIfAmsiLoaded // a precheck to see if amsi is even loaded in this process
-
-
     int openremoteProcessHandle() {
         /*
         Get a handle to the remoteProcessPID's process.
@@ -140,13 +123,8 @@ public:
                 wchar_t moduleName[MAX_PATH];
                 wchar_t fullPath[MAX_PATH];
 
-                // Get short name (like "amsi.dll")
+                // Get short name (ex, amsi.dll)
                 if (GetModuleBaseNameW(this->remoteProcessHandle, modules[i], moduleName, MAX_PATH)) {
-                    // Get full path (like "C:\\Windows\\System32\\amsi.dll")
-                    //GetModuleFileNameExW(this->remoteProcessHandle, modules[i], fullPath, MAX_PATH);
-
-
-                    //std::wcout << L"\t[+] " << moduleName << L" @ 0x" << modules[i] << std::endl; //| " << fullPath << std::endl;
 
                     //check if process is amsi.dll and if so, get address 
                     std::wstring modNameStr(moduleName);
@@ -292,21 +270,7 @@ public:
     //vector to reference for which pids are actively getting patched.
     std::vector<DWORD> vectorPidsGettingPatched;
 
-
     void run() {
-        //in loop, get snapshot of processes
-
-        //loop through, find processes that are ps (maybe use FindPowerShellProcesses)
-
-        //if pid is ps, and NOT in vectorPidsGettingPatched, add to vectorPidsGettingPatched
-
-        //run patch on everything in vectorPidsGettingPatched
-            // >> RemoteAmsiPatch(pid);
-
-
-        //first time, set vector as the find ps processes output
-        //vectorPidsGettingPatched = FindPowerShellProcesses();
-
         while (true) {
             try {
 
@@ -350,7 +314,6 @@ void helpMenu() {
     std::cout << "    [+] Administrator privileges are required to patch remote processes.\n";
 }
 
-
 int main(int argc, char* argv[]) {
     //if no arg, show help menu
     if (argc < 2) {
@@ -361,12 +324,12 @@ int main(int argc, char* argv[]) {
     //if autopatch, start watchdog class.
     std::string arg1 = argv[1];
     if (arg1 == "--autopatch") {
-        std::cout << "autopatch" << std::endl;
+        //std::cout << "autopatch" << std::endl;
+        std::cout << "===== Starting Watchdog & Autopatching =====" << std::endl;
         WatchDog wd; 
         wd.run();
         return 0;
     }
-
 
     //one-off patch
     else if (arg1 == "--patch") {
@@ -401,5 +364,4 @@ int main(int argc, char* argv[]) {
     else {
         helpMenu();
     }
-
 }
