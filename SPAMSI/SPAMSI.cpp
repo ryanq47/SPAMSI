@@ -286,9 +286,27 @@ std::vector<DWORD> FindPowerShellProcesses() {
     return pids;
 }
 
+void helpMenu() {
+    std::cout << "\n[+] Remote AMSI Patcher - Help Menu\n";
+    std::cout << "-----------------------------------\n";
+    std::cout << "--patch         : Scan for PowerShell processes and patch AMSI in each.\n";
+    std::cout << "--autopatch     : Monitor for new PowerShell processes and patch AMSI on detection (watchdog mode).\n";
+    std::cout << "--help          : Show this help menu.\n";
+    std::cout << "\nUsage:\n";
+    std::cout << "    amsipatch.exe --patch\n";
+    std::cout << "    amsipatch.exe --autopatch\n";
+    std::cout << "\nNote:\n";
+    std::cout << "    [+] Administrator privileges are required to patch remote processes.\n";
+}
+
 
 int main(int argc, char* argv[]) {
-    
+    //if no arg, show help menu
+    if (argc < 2) {
+        helpMenu();
+        return 0;
+    }
+
     //if autopatch, start watchdog class.
     std::string arg1 = argv[1];
     if (arg1 == "--autopatch") {
@@ -296,8 +314,9 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    //if no arg (or some other arg), just go ahead and patch current instances
-    else {
+
+    //one-off patch
+    else if (arg1 == "--patch") {
         //enum remote processes for powershell etc
         auto powershellPIDs = FindPowerShellProcesses();
 
@@ -325,6 +344,9 @@ int main(int argc, char* argv[]) {
         }
 
         return 0;
+    }
+    else {
+        helpMenu();
     }
 
 }
