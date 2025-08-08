@@ -403,18 +403,3 @@ int main(int argc, char* argv[]) {
     }
 
 }
-
-/*
-* 
-* TODO:
-* [ ] Watchdog Class
-* 
-watchdog idea:
-
- arg: --autopatch
-
-Monitor new processes (easiset way would be polling via createsnapshot), find new processes that fit the mold, if
-they are not in a list that exists, go ahead and run the patch on them.
-
-*/
-
