@@ -1,4 +1,4 @@
-# SPAMSI - Remote AMSI Patch Tool
+# SPAMSI - Remote Process AMSI Patch Tool
 
   
 
