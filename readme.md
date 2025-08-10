@@ -5,7 +5,7 @@
 **SPAMSI** is a post-exploitation tool for disabling AMSI (Antimalware Scan Interface) in remote PowerShell processes. It supports both **one-time patching** and **continuous monitoring** via a watchdog service (hence the name... "spam"si... it spams your PS processes with a patch)
 
   
-**Note:** Requires Administrator privileges to function properly, as it accesses and modifies memory of other processes. This is why SPAMSI is designed as a post-exploitation tool.
+**Note**: SPAMSI patches all running PowerShell instances. If those processes are running under the same user account (SID) and at the same integrity level as the caller, they can be patched without Administrator privileges. Any PowerShell process running as another user, at a higher integrity level, or as SYSTEM will require elevation with Administrator rights (e.g., SeDebugPrivilege) to access and modify its memory. SPAMSI is intended for post-exploitation scenarios where the operator already has sufficient context to reach the desired processes.
  
 ---
 
